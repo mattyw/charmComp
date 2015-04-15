@@ -1,8 +1,6 @@
 #!/usr/bin/env python
 
-import argparse
 import os
-#import random
 import socket
 import SocketServer as ss
 import time
@@ -32,7 +30,6 @@ class DataStore(object):
         if nsname is None:
             nsname = self.nsname
         msg = '{} {} {}'.format(nsname, number, int(timestamp))
-#        message = 'test.data.foo.bar %d %d\n' % (random.randint(1,20),int(time.time()))
 
         if self.verbose:
             print('sending message:\n' + msg)
@@ -111,6 +108,8 @@ def main(targethost, targetport, host, port, ns):
 
 
 if __name__ == '__main__':
+    import argparse
+
     DEFAULT_HOST = '127.0.0.1'
     DEFAULT_PORT = 9999
     DEFAULT_NAMESPACE = ''
@@ -120,9 +119,12 @@ if __name__ == '__main__':
                         help='the address of the data store server')
     parser.add_argument('--port', default=DEFAULT_PORT,
                         help='the port of the data store server')
-    parser.add_argument('--ns', default=DEFAULT_NAMESPACE)
-    parser.add_argument('targethost', help='the address of the data store server')
-    parser.add_argument('targetport', help='the port of the data store server')
+    parser.add_argument('--ns', default=DEFAULT_NAMESPACE,
+                        help='the DB namespace to target')
+    parser.add_argument('targethost',
+                        help='the address of the data store server')
+    parser.add_argument('targetport',
+                        help='the port of the data store server')
     args = parser.parse_args()
 
     main(args.host, args.port, args.targethost, args.targetport, args.ns)
