@@ -7,7 +7,9 @@ maintainers:
         - Cheryl Jennings <cheryl.jennings@canonical.com>
         - Eric Snow <eric.snow@canonical.com>
 description: |
-  <Multi-line description here>
+  This will install and setup grafana behind nginx.
+  It supports getting data from influx db via the query relation
+  to the influxdb charm.
 tags:
   - monitoring
 requires:
