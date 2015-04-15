@@ -20,13 +20,13 @@ define(['settings'], function(Settings) {
       datasources: {
         influxdb: {
           type: 'influxdb',
-          url: "http://DB_HOSTNAME:8086/db/INPUT_DATABASE",
+          url: "/influx/db/INPUT_DATABASE",
           username: 'DB_USER',
           password: 'DB_PASSWORD',
         },
         grafana: {
           type: 'influxdb',
-          url: "http://DB_HOSTNAME:8086/db/GRAFANA_DATABASE",
+          url: "/influx/db/GRAFANA_DATABASE",
           username: 'DB_USER',
           password: 'DB_PASSWORD',
           grafanaDB: true

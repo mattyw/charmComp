@@ -4,6 +4,6 @@ set -eux
 
 sudo apt-get -y install nginx-full
 tar -xvf $CHARM_DIR/files/grafana-1.9.1.tar.gz -C /opt
-sudo sed -i "s|/usr/share/nginx/html|/opt/grafana-1.9.1|g" /etc/nginx/sites-available/default
+sed -e "s|@CHARM_DIR@|$CHARM_DIR|g" $CHARM_DIR/files/nginx_notready | sudo tee /etc/nginx/sites-available/default > /dev/null
 
-cp $CHARM_DIR/files/config.js /opt/grafana-1.9.1/config.js
+sudo service nginx restart

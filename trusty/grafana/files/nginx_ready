@@ -1,0 +1,15 @@
+server {
+        listen 80 default_server;
+        listen [::]:80 default_server ipv6only=on;
+        root /opt/grafana-1.9.1;
+        index index.html index.htm;
+        server_name localhost;
+
+        location /influx/ {
+                proxy_pass http://@DB_HOSTNAME@:8086/;
+        }
+
+        location / {
+                try_files $uri $uri/ =404;
+        }
+}
