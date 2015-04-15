@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -ex
+
+apt-get update
+apt-get -y install python-pip
+
+dpkg -i $CHARM_DIR/files/influxdb_latest_amd64.deb
+
+cp /opt/influxdb/shared/config.toml \
+   /opt/influxdb/shared/config.example.toml 
+
+pip install --no-index \
+    --find-links=file://$CHARM_DIR/files -r files/requirements.txt
+
+juju-log "Configuring graphite interface"
+sed -i "s|DB_PORT|8217|g" $CHARM_DIR/files/config.toml
+cp $CHARM_DIR/files/config.toml /opt/influxdb/current/
+cp $CHARM_DIR/files/config.toml /opt/influxdb/shared/
+
+

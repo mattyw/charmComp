@@ -1,0 +1,9 @@
+#!/bin/bash
+
+set -eux 
+
+hostname=`unit-get public-address`
+
+`relation-set hostname=$hostname`
+`relation-set port=8217`
+

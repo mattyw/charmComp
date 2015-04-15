@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -eux
+
+GRAFANA_DATABASE="grafana"
+INPUT_DATABASE="data"
+USER=`relation-get user`
+PASSWORD=`relation-get password`
+HOST=`relation-get hostname`
+
+if [ $USER = ""]; then
+	juju-log "No user specified"
+	exit 0
+fi
+
+if [ $PASSWORD = "" ]; then
+	juju-log "No password specified"
+	exit 0
+fi
+
+if [ $HOST = "" ]; then
+	juju-log "No hostname specified"
+	exit 0
+fi
+	
+# Create database
+juju-log "Creating database: host: $HOST, user: $USER, pass: $PASSWORD"
+curl -s "http://$HOST:8086/db?u=$USER&p=$PASSWORD" -d "{\"name\": \"$GRAFANA_DATABASE\"}"
+curl -s "http://$HOST:8086/db?u=$USER&p=$PASSWORD" -d "{\"name\": \"$INPUT_DATABASE\"}"
+
+sed -i "s|DB_HOSTNAME|$HOST|g" $CHARM_DIR/files/config.js
+sed -i "s|DB_USER|$USER|g" $CHARM_DIR/files/config.js
+sed -i "s|DB_PASSWORD|$PASSWORD|g" $CHARM_DIR/files/config.js
+sed -i "s|INPUT_DATABASE|$INPUT_DATABASE|g" $CHARM_DIR/files/config.js
+sed -i "s|GRAFANA_DATABASE|$GRAFANA_DATABASE|g" $CHARM_DIR/files/config.js
+
+cp $CHARM_DIR/files/config.js /opt/grafana-1.9.1/
+
+sudo service nginx restart

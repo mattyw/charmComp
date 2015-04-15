@@ -1,0 +1,15 @@
+name: grafana
+summary: Grafana is a general purpose dashboard and graph composer.
+maintainers: 
+        - Ian Booth <ian.booth@canonical.com>
+        - Michael Hudson-Doyle <michael.hudson@canonical.com>
+        - Matthew Williams <matthew.williams@canonical.com>
+        - Cheryl Jennings <cheryl.jennings@canonical.com>
+        - Eric Snow <eric.snow@canonical.com>
+description: |
+  <Multi-line description here>
+tags:
+  - monitoring
+requires:
+  query:
+    interface: influxdb-http

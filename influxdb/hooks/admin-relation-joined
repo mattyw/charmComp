@@ -1,0 +1,19 @@
+#/usr/bin/python
+import subprocess
+import sys
+
+from utils import read_config
+
+config = read_config()
+
+admin_port = config.get('admin', {}).get('port')
+address = subprocess.check_output([
+    'unit-get', 'public-address']).strip()
+
+if admin_port is None:
+    print("admin port is disabled")
+    sys.exit(1)
+
+subprocess.check_output([
+    'relation-set', "port=%s" % str(port), "hostname=%s" % address])
+

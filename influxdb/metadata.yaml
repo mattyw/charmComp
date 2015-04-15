@@ -1,0 +1,19 @@
+name: influxdb
+summary: Scalable Time Series DB
+maintainers: 
+        - Ian Booth <ian.booth@canonical.com>
+        - Michael Hudson-Doyle <michael.hudson@canonical.com>
+        - Matthew Williams <matthew.williams@canonical.com>
+        - Cheryl Jennings <cheryl.jennings@canonical.com>
+        - Eric Snow <eric.snow@canonical.com>
+description: |
+  Scalable Time Series DB for use with Grafana.
+tags:
+        - database
+provides:
+  admin:
+    interface: http
+  query:
+    interface: influxdb-http
+  graphite:
+    interface: plaintext
