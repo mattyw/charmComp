@@ -1,0 +1,19 @@
+#!/usr/bin/env bash
+
+set -eux 
+
+TADDR=$(relation-get hostname)
+TPORT=$(relation-get port)
+
+unit-set taddr=$TADDR
+unit-set tport=$TPORT
+
+if [[ $(unit-get ready) != "true" ]]; then
+    # don't try starting
+    exit 0
+fi
+
+if [[ -n $TADDR ]]; then
+    $CHARM_DIR/hooks/stop
+    $CHARM_DIR/hooks/start
+fi

@@ -1,5 +1,5 @@
-name: influxdb
-summary: Scalable Time Series DB
+name: influxdb-injecter
+summary: Inject data into influxDB
 maintainers: 
         - Ian Booth <ian.booth@canonical.com>
         - Michael Hudson-Doyle <michael.hudson@canonical.com>
@@ -7,16 +7,17 @@ maintainers:
         - Cheryl Jennings <cheryl.jennings@canonical.com>
         - Eric Snow <eric.snow@canonical.com>
 description: |
-  Scalable Time Series DB for use with Grafana.
+  Inject data into influxDB
+categories:
+        - application
 tags:
         - database
-provides:
-  admin:
-    interface: http
-  query:
-    interface: influxdb-http
-  graphite:
-    interface: plaintext
+subordinate: true
+requires: 
   datastore:
     interface: sockserver
-      sets: [hostname, port]
+    scope: container
+    gets: [hostname, port]
+provides:
+  number-listener:
+    interface: sockserver

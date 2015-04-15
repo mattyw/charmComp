@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -ex
+
+INSTALL_DIR=/opt/influxdb-injecter
+BIN_DIR=$INSTALL_DIR/bin
+SERVER=$BIN_DIR/server
+
+juju-log "installing to $INSTALL_DIR"
+
+mkdir -p $BIN_DIR
+cp $CHARM_DIR/files/server.py $BIN_DIR/server
+chmod 755 $SERVER/server

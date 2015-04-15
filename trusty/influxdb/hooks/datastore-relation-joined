@@ -1,0 +1,4 @@
+#/usr/bin/env bash
+
+relation-set hostname=$(unit-get private-addr)
+relation-set port=$(unit-get port)

@@ -1,0 +1,20 @@
+#!/bin/bash
+set -ex
+
+SERVER=/opt/influxdb-injecter/bin/server
+
+ADDR=$(unit-get public-addr)
+PORT=$(unit-get port)
+TADDR=$(unit-get targetaddr)
+TPORT=$(unit-get targetport)
+
+unit-set ready=true
+
+if [[ -z TADDR ]]; then
+    juju-log "server not ready to start"
+    exit 0
+fi
+
+PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $TADDR $TPORT)
+
+unit-set pid=$PID
