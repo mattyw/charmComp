@@ -1,15 +1,26 @@
 #!/bin/bash
 set -ex
 
-BIN_DIR=/opt/influxdb-injecter/bin
-PID_FILE=$BIN_DIR/pid
+INSTALL_DIR=/opt/influxdb-injecter
+CARBON_PID_FILE=$INSTALL_DIR/carbon.pid
+INJECTOR_PID_FILE=$INSTALL_DIR/injector.pid
 
-PID=`grep PID $PID_FILE | cut -d'=' -f2`
+function stop() {
+    PID_FILE = $1
+    if [[ ! -e $PID_FILE ]]; then
+        return 0
+    fi
 
-if [[ $PID == "" ]]; then
-    # not running
-    exit 0
-fi
+    PID=`grep PID $PID_FILE | cut -d'=' -f2`
 
-kill -9 $PID
-rm $PID_FILE
+    if [[ $PID == "" ]]; then
+        # not running
+        return 0
+    fi
+
+    kill -9 $PID
+    rm $PID_FILE
+}
+
+stop $INJECTOR_PID_FILE
+stop $CARBON_PID_FILE

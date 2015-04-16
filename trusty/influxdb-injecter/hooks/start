@@ -1,9 +1,11 @@
 #!/bin/bash
 set -ex
 
-BIN_DIR=/opt/influxdb-injecter/bin
-PID_FILE=$BIN_DIR/pid
-CFG_FILE=$BIN_DIR/cfg
+INSTALL_DIR=/opt/influxdb-injecter
+CARBON_PID_FILE=$INSTALL_DIR/carbon.pid
+INJECTOR_PID_FILE=$INSTALL_DIR/injector.pid
+CFG_FILE=$INSTALL_DIR/injector.cfg
+BIN_DIR=$INSTALL_DIR/bin
 SERVER=$BIN_DIR/server
 
 if [[ -e $CFG_FILE ]]; then
@@ -16,15 +18,16 @@ fi
 
 NAMESPACE="series-$ADDR"
 
-if [[ -e $PID_FILE ]]; then
+if [[ -e $CARBON_PID_FILE ]]; then
         juju-log "Already started, respawning"
         $CHARM_DIR/hooks/stop
 fi
 
-#PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $ADDR $PORT)
 $CHARM_DIR/files/test_carbon.py $ADDR $PORT $NAMESPACE > /dev/null &
 PID=$!
+juju-log "Starting carbon with pid: $PID"
+echo "PID=$PID" > $CARBON_PID_FILE
 
-juju-log "Starting script with pid: $PID"
-
-echo "PID=$PID" > $PID_FILE
+PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $ADDR $PORT &)
+juju-log "Starting injector with pid: $PID"
+echo "PID=$PID" > $INJECTOR_PID_FILE
