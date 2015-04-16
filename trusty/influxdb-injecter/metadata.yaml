@@ -8,10 +8,8 @@ maintainers:
         - Eric Snow <eric.snow@canonical.com>
 description: |
   Inject data into influxDB
-categories:
-        - application
 tags:
-        - database
+        - monitoring
 subordinate: true
 requires: 
   datastore:
