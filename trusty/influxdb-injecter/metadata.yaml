@@ -17,7 +17,6 @@ requires:
   datastore:
     interface: sockserver
     scope: container
-    gets: [hostname, port]
 provides:
   number-listener:
     interface: sockserver
