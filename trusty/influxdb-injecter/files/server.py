@@ -5,15 +5,28 @@ import socket
 import SocketServer as ss
 import threading
 import time
- 
+
+
+def _read_all(sock):
+    data = b''
+    try:
+        while True:
+            d = sock.recv(1024)
+            if not d:
+                break
+            data += data
+    except socket.timeout:
+        pass
+    return data
+
 
 def send(host, port, msg):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(0.1)
     sock.connect((host, port))
     try:
         sock.sendall(msg)
-        while sock.recv(1024):
-            pass
+        result = _read_all(sock)
     finally:
         sock.shutdown(socket.SHUT_RDWR)
         sock.close()
@@ -45,9 +58,7 @@ class DataStore(object):
 
 class _Handler(ss.BaseRequestHandler):
 
-    def __init__(self, request, client_address, server):
-        ss.BaseRequestHandler.__init__(self, request, client_address, server)
-        self.store = server.store
+    store = None
 
     def _parse(self):
         data = b''
@@ -71,11 +82,9 @@ class _Handler(ss.BaseRequestHandler):
         return number, series
 
     def handle(self):
-        #verbose = False
-        verbose = True
         try:
             number, series = self._parse()
-            self.store.store_data(number, series=series, verbose=verbose)
+            self.store.store_data(number, series=series)
         except Exception as e:
             raise
             msg = 'ERROR: {}'.format(e).decode('utf-8')
@@ -91,21 +100,21 @@ class Server(ss.TCPServer):
     allow_reuse_address = True
 
     @classmethod
-    def from_addrs(cls, targethost, targetport, host, port, series):
-        store = DataStore(targethost, targetport, series)
+    def from_addrs(cls, targethost, targetport, host, port, series,
+                   verbose=False):
+        #verbose = True
+        store = DataStore(targethost, targetport, series, verbose)
         server = cls(host, port, store)
         return server
 
     def __init__(self, host, port, store):
-        ss.TCPServer.__init__(self, (host, port), self._handler)
-
-        self.store = store
+        _store = store
+        class handler(_Handler):
+            store = _store
+        ss.TCPServer.__init__(self, (host, port), handler)
 
         self.thread = threading.Thread(target=self.serve_forever)
         self.thread.daemon = True
-
-    def _handler(self, request, client_address, server):
-        return _Handler(request, client_address, server)
 
     def __enter__(self):
         return self

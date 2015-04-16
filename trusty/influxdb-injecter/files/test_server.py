@@ -1,5 +1,4 @@
 import random
-#import socket
 import SocketServer as ss
 import unittest
 
@@ -12,39 +11,16 @@ PORT = 9999
 SERIES = 'test'
 
 
-class FakeHandler(ss.BaseRequestHandler):
-
-    def handle(self):
-        self.msg = self.request.recv(1024).encode('utf-8')
-
-
 class BaseSuite(unittest.TestCase):
 
     def setUp(self):
         super(BaseSuite, self).setUp()
-
-        self.handlers = []
+        self.numbers = [random.randint(1, 20) for _ in range(9)]
         self.sent = []
 
-        self.numbers = [random.randint(1, 20) for _ in range(9)]
-
-    @property
-    def handler(self):
-        try:
-            return self.handlers[-1]
-        except IndexError:
-            return None
-
-    def _new_handler(self, *args, **kwargs):
-        handler = FakeHandler(*args, **kwargs)
-        self.handlers.append(handler)
-        return handler
-
-    def new_server(self, port):
-        return ss.TCPServer((HOST, port), self._new_handler)
-
     def send(self, host, port, data):
-        self.sent.append((host, port, data))
+        req = (host, port, data)
+        self.sent.append(req)
 
 
 class TestDataStore(BaseSuite):
@@ -66,7 +42,7 @@ class TestServer(BaseSuite):
             series, number, timestamp = msg.encode('utf-8').split()
             self.assertEqual(series, 'test')
             self.assertEqual(number, str(num))
-            self.assertEqual(timestamp, '')
+            self.assertNotEqual(timestamp, '')
 
     def test_send(self):
         numbers = [10, 100, 99, 7, 42]
@@ -78,7 +54,7 @@ class TestServer(BaseSuite):
             srv.start()
             with srv:
                 for num in numbers:
-                    send(HOST, PORT, bytes(str('10')))
+                    send(HOST, PORT, bytes(num))
         finally:
             server.send = send
 
