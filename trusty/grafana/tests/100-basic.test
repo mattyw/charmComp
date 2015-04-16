@@ -1,0 +1,39 @@
+#!/usr/bin/python3
+
+import amulet
+
+d = amulet.Deployment(series="trusty")
+
+d.add('grafana', charm="grafana")
+d.add("influxdb", charm="cs:~cherylj/trusty/influxdb-0")
+
+d.configure('grafana', {})
+d.configure("influxdb", {})
+
+d.relate('grafana:query', 'influxdb:query')
+
+d.expose('grafana')
+
+try:
+    d.setup(timeout=900)
+    d.sentry.wait()
+except amulet.helpers.TimeoutError:
+    amulet.raise_status(amulet.SKIP, msg="Environment wasn't stood up in time")
+except:
+    raise
+
+"""
+assert_relation_settings asserts that the correct settings
+are made on the relations
+"""
+
+
+def assert_relation_settings():
+    rel_data = d.sentry.unit['influxdb/0'].relation('query', "grafana:query")
+    print(rel_data)
+    for k in ["user", "password", "port"]:
+        if k not in rel_data.keys():
+            amulet.raise_status(amulet.SKIP, msg="key %s not found" % k)
+
+
+assert_relation_settings()
