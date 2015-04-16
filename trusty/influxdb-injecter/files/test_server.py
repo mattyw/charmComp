@@ -9,7 +9,7 @@ import server
 HOST = '127.0.0.1'
 TPORT = 9998
 PORT = 9999
-NS = 'test'
+SERIES = 'test'
 
 
 class FakeHandler(ss.BaseRequestHandler):
@@ -71,7 +71,7 @@ class TestMain(BaseSuite):
         send = server.send
         server.send = self.send
         try:
-            srv = server.main(HOST, TPORT, HOST, PORT, NS)
+            srv = server.main(HOST, TPORT, HOST, PORT, SERIES)
             send(HOST, PORT, b'10')
             srv.shutdown()
         finally:

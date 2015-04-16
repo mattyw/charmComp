@@ -24,18 +24,18 @@ def send(host, port, msg):
 
 class DataStore(object):
 
-    def __init__(self, host, port, nsname, verbose=False):
+    def __init__(self, host, port, series, verbose=False):
         self.host = host
         self.port = port
-        self.nsname = nsname
+        self.series = series
         self.verbose = verbose
 
-    def store_data(self, number, timestamp=None, nsname=None):
+    def store_data(self, number, timestamp=None, series=None):
         if timestamp is None:
             timestamp = time.time()
-        if nsname is None:
-            nsname = self.nsname
-        msg = '{} {} {}'.format(nsname, number, int(timestamp))
+        if series is None:
+            series = self.series
+        msg = '{} {} {}'.format(series, number, int(timestamp))
 
         if self.verbose:
             print('sending message:\n' + msg)
@@ -50,7 +50,7 @@ class _Handler(ss.BaseRequestHandler):
 
     def _parse(self):
         data = self.request.recv(1024)
-        nsname, _, number = data.encode('utf-8').rpartition(':')
+        series, _, number = data.encode('utf-8').rpartition(':')
 
         try:
             float(number)
@@ -59,16 +59,16 @@ class _Handler(ss.BaseRequestHandler):
 
         # XXX Enforce bounds?
 
-        if not nsname:
-            nsname = None
-        return number, nsname
+        if not series:
+            series = None
+        return number, series
 
     def handle(self):
         #verbose = False
         verbose = True
         try:
-            number, nsname = self._parse()
-            self.store.store_data(number, nsname=nsname, verbose=verbose)
+            number, series = self._parse()
+            self.store.store_data(number, series=series, verbose=verbose)
         except Exception as e:
             #raise
             msg = 'ERROR: {}'.format(e).decode('utf-8')
