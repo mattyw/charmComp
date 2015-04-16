@@ -1,7 +1,10 @@
 #!/bin/bash
 set -ex
 
-PID=$(unit-get pid)
+BIN_DIR=/opt/influxdb-injecter/bin
+PID_FILE=$BIN_DIR/pid
+
+PID=`grep PID $PID_FILE | cut -d'=' -f1`
 
 if [[ -z $PID ]]; then
     # not running
@@ -9,3 +12,4 @@ if [[ -z $PID ]]; then
 fi
 
 kill -9 $PID
+rm $PID_FILE
