@@ -7,8 +7,8 @@ CFG_FILE=$BIN_DIR/cfg
 SERVER=$BIN_DIR/server
 
 if [[ -e $CFG_FILE ]]; then
-    ADDR=`grep ADDR $CFG_FILE | cut -d'=' -f1`
-    PORT=`grep PORT $CFG_FILE | cut -d'=' -f1`
+    ADDR=`grep ADDR $CFG_FILE | cut -d'=' -f2`
+    PORT=`grep PORT $CFG_FILE | cut -d'=' -f2`
 else
     juju-log "server not ready to start"
     exit 0
@@ -21,6 +21,10 @@ if [[ -e $PID_FILE ]]; then
         $CHARM_DIR/hooks/stop
 fi
 
-PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $ADDR $PORT)
+#PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $ADDR $PORT)
+$CHARM_DIR/files/test_carbon.py $ADDR $PORT $NAMESPACE > /dev/null &
+PID=$!
+
+juju-log "Starting script with pid: $PID"
 
 echo "PID=$PID" > $PID_FILE
