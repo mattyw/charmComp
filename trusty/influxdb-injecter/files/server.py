@@ -5,16 +5,30 @@ import socket
 import SocketServer as ss
 import threading
 import time
- 
+
+
+def _read_all(sock):
+    data = b''
+    try:
+        while True:
+            d = sock.recv(1024)
+            if not d:
+                break
+            data += data
+    except socket.timeout:
+        pass
+    return data
+
 
 def send(host, port, msg):
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.settimeout(0.1)
     sock.connect((host, port))
     try:
         sock.sendall(msg)
-        result = sock.recv(1024)
-        time.sleep(1)  # XXX why?
+        result = _read_all(sock)
     finally:
+        sock.shutdown(socket.SHUT_RDWR)
         sock.close()
 
     if result.startswith('ERROR: '):
@@ -44,33 +58,35 @@ class DataStore(object):
 
 class _Handler(ss.BaseRequestHandler):
 
-    def __init__(self, request, client_address, server):
-        ss.BaseRequestHandler.__init__(self, request, client_address, server)
-        self.store = server.store
+    store = None
 
     def _parse(self):
-        data = self.request.recv(1024)
+        data = b''
+        while True:
+            d = self.request.recv(1024)
+            if not d:
+                break
+            data += d
         series, _, number = data.encode('utf-8').rpartition(':')
 
         try:
-            float(number)
+            value = int(number)
         except ValueError:
             raise Exception('expected a number, got {!r}'.format(number))
 
-        # XXX Enforce bounds?
+        if value < 0 or value > 100:
+            raise Exception('out of bounds [0, 100]: {}'.format(value))
 
         if not series:
             series = None
         return number, series
 
     def handle(self):
-        #verbose = False
-        verbose = True
         try:
             number, series = self._parse()
-            self.store.store_data(number, series=series, verbose=verbose)
+            self.store.store_data(number, series=series)
         except Exception as e:
-            #raise
+            raise
             msg = 'ERROR: {}'.format(e).decode('utf-8')
         else:
             msg = ''  # success
@@ -80,23 +96,42 @@ class _Handler(ss.BaseRequestHandler):
 
 class Server(ss.TCPServer):
 
-    def __init__(self, host, port, store):
-        print(host, port)
-        ss.TCPServer.__init__(self, (host, port), self._handler)
+    daemon_threads = True  # support C-C
+    allow_reuse_address = True
 
-        self.store = store
+    @classmethod
+    def from_addrs(cls, targethost, targetport, host, port, series,
+                   verbose=False):
+        #verbose = True
+        store = DataStore(targethost, targetport, series, verbose)
+        server = cls(host, port, store)
+        return server
+
+    def __init__(self, host, port, store):
+        _store = store
+        class handler(_Handler):
+            store = _store
+        ss.TCPServer.__init__(self, (host, port), handler)
 
         self.thread = threading.Thread(target=self.serve_forever)
         self.thread.daemon = True
 
-    def _handler(self, request, client_address, server):
-        return _Handler(request, client_address, server)
+    def __enter__(self):
+        return self
 
-    def run(self):
-        self.serve_forever()
+    def __exit__(self, *args, **kwargs):
+        self.shutdown()
 
-    def run_background(self):
+    def start(self):
         self.thread.start()
+
+    def run(self, timeout=None):
+        self.start()
+        with self:
+            self.thread.join(timeout)
+
+    def daemon(self):
+        raise NotImplementedError
 
     def pid(self):
         return os.getpid()
@@ -111,14 +146,12 @@ class ThreadingServer(ss.ThreadingMixIn, Server):
 
 
 def main(targethost, targetport, host, port, ns):
-    store = DataStore(targethost, targetport, ns)
-    server = ThreadingServer(host, port, store)
-    #server = ForkingServer(host, port, store)
+    _Server = ThreadingServer
+    #Server = ForkingServer
+    server = _Server.from_addrs(targethost, targetport, host, port, ns)
 
     print(server.pid())
-    #server.run()
-    server.run_background()
-    return server
+    server.run()
 
 
 if __name__ == '__main__':
@@ -141,4 +174,4 @@ if __name__ == '__main__':
                         help='the port of the data store server')
     args = parser.parse_args()
 
-    main(args.host, args.port, args.targethost, args.targetport, args.ns)
+    srv = main(args.host, args.port, args.targethost, args.targetport, args.ns)
