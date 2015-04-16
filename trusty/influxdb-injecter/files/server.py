@@ -12,9 +12,10 @@ def send(host, port, msg):
     sock.connect((host, port))
     try:
         sock.sendall(msg)
-        result = sock.recv(1024)
-        time.sleep(1)  # XXX why?
+        while sock.recv(1024):
+            pass
     finally:
+        sock.shutdown(socket.SHUT_RDWR)
         sock.close()
 
     if result.startswith('ERROR: '):
@@ -49,7 +50,12 @@ class _Handler(ss.BaseRequestHandler):
         self.store = server.store
 
     def _parse(self):
-        data = self.request.recv(1024)
+        data = b''
+        while True:
+            d = self.request.recv(1024)
+            if not d:
+                break
+            data += d
         series, _, number = data.encode('utf-8').rpartition(':')
 
         try:
@@ -70,7 +76,7 @@ class _Handler(ss.BaseRequestHandler):
             number, series = self._parse()
             self.store.store_data(number, series=series, verbose=verbose)
         except Exception as e:
-            #raise
+            raise
             msg = 'ERROR: {}'.format(e).decode('utf-8')
         else:
             msg = ''  # success
@@ -80,8 +86,16 @@ class _Handler(ss.BaseRequestHandler):
 
 class Server(ss.TCPServer):
 
+    daemon_threads = True  # support C-C
+    allow_reuse_address = True
+
+    @classmethod
+    def from_addrs(cls, targethost, targetport, host, port, series):
+        store = DataStore(targethost, targetport, series)
+        server = cls(host, port, store)
+        return server
+
     def __init__(self, host, port, store):
-        print(host, port)
         ss.TCPServer.__init__(self, (host, port), self._handler)
 
         self.store = store
@@ -92,11 +106,22 @@ class Server(ss.TCPServer):
     def _handler(self, request, client_address, server):
         return _Handler(request, client_address, server)
 
-    def run(self):
-        self.serve_forever()
+    def __enter__(self):
+        return self
 
-    def run_background(self):
+    def __exit__(self, *args, **kwargs):
+        self.shutdown()
+
+    def start(self):
         self.thread.start()
+
+    def run(self, timeout=None):
+        self.start()
+        with self:
+            self.thread.join(timeout)
+
+    def daemon(self):
+        raise NotImplementedError
 
     def pid(self):
         return os.getpid()
@@ -111,14 +136,12 @@ class ThreadingServer(ss.ThreadingMixIn, Server):
 
 
 def main(targethost, targetport, host, port, ns):
-    store = DataStore(targethost, targetport, ns)
-    server = ThreadingServer(host, port, store)
-    #server = ForkingServer(host, port, store)
+    _Server = ThreadingServer
+    #Server = ForkingServer
+    server = _Server.from_addrs(targethost, targetport, host, port, ns)
 
     print(server.pid())
-    #server.run()
-    server.run_background()
-    return server
+    server.run()
 
 
 if __name__ == '__main__':
@@ -141,4 +164,4 @@ if __name__ == '__main__':
                         help='the port of the data store server')
     args = parser.parse_args()
 
-    main(args.host, args.port, args.targethost, args.targetport, args.ns)
+    srv = main(args.host, args.port, args.targethost, args.targetport, args.ns)

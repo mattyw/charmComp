@@ -55,38 +55,37 @@ class TestDataStore(BaseSuite):
 
 class TestServer(BaseSuite):
 
-    def test_run(self):
-        pass
+    def check_sent(self, series, numbers):
+        self.assertEqual(len(self.sent), len(numbers))
 
-    def test_run_background(self):
-        pass
+        for sent, num in zip(self.sent, numbers):
+            host, port, msg = sent
+            self.assertEqual(host, HOST)
+            self.assertEqual(port, TPORT)
 
-    def test_(self):
-        pass
+            series, number, timestamp = msg.encode('utf-8').split()
+            self.assertEqual(series, 'test')
+            self.assertEqual(number, str(num))
+            self.assertEqual(timestamp, '')
 
+    def test_send(self):
+        numbers = [10, 100, 99, 7, 42]
 
-class TestMain(BaseSuite):
-
-    def test_okay(self):
         send = server.send
         server.send = self.send
         try:
-            srv = server.main(HOST, TPORT, HOST, PORT, SERIES)
-            send(HOST, PORT, b'10')
-            srv.shutdown()
+            srv = server.Server.from_addrs(HOST, TPORT, HOST, PORT, SERIES)
+            srv.start()
+            with srv:
+                for num in numbers:
+                    send(HOST, PORT, bytes(str('10')))
         finally:
             server.send = send
 
-        self.assertEqual(len(self.sent), 1)
-        sent, = self.sent
-        host, port, msg = sent
-        self.assertEqual(host, HOST)
-        self.assertEqual(port, TPORT)
+        self.check_sent(SERIES, numbers)
 
-        series, number, timestamp = msg.encode('utf-8').split()
-        self.assertEqual(series, 'test')
-        self.assertEqual(number, '10')
-        self.assertEqual(timestamp, '')
+    def test_run(self):
+        pass
 
 
 if __name__ == '__main__':
