@@ -4,9 +4,9 @@ set -ex
 BIN_DIR=/opt/influxdb-injecter/bin
 PID_FILE=$BIN_DIR/pid
 
-PID=`grep PID $PID_FILE | cut -d'=' -f1`
+PID=`grep PID $PID_FILE | cut -d'=' -f2`
 
-if [[ -z $PID ]]; then
+if [[ $PID == "" ]]; then
     # not running
     exit 0
 fi
