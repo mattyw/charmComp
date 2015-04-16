@@ -8,7 +8,7 @@ apt-get -y install python-pip
 dpkg -i $CHARM_DIR/files/influxdb_latest_amd64.deb
 
 cp /opt/influxdb/shared/config.toml \
-   /opt/influxdb/shared/config.example.toml 
+   /opt/influxdb/shared/config.example.toml
 
 pip install --no-index \
     --find-links=file://$CHARM_DIR/files -r files/requirements.txt
