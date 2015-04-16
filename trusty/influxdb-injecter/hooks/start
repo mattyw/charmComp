@@ -1,20 +1,26 @@
 #!/bin/bash
 set -ex
 
-SERVER=/opt/influxdb-injecter/bin/server
+BIN_DIR=/opt/influxdb-injecter/bin
+PID_FILE=$BIN_DIR/pid
+CFG_FILE=$BIN_DIR/cfg
+SERVER=$BIN_DIR/server
 
-ADDR=$(unit-get public-addr)
-PORT=$(unit-get port)
-TADDR=$(unit-get targetaddr)
-TPORT=$(unit-get targetport)
-
-unit-set ready=true
-
-if [[ -z TADDR ]]; then
+if [[ -e $CFG_FILE ]]; then
+    ADDR=`grep ADDR $CFG_FILE | cut -d'=' -f1`
+    PORT=`grep PORT $CFG_FILE | cut -d'=' -f1`
+else
     juju-log "server not ready to start"
     exit 0
 fi
 
-PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $TADDR $TPORT)
+NAMESPACE="series-$ADDR"
 
-unit-set pid=$PID
+if [[ -e $PID_FILE ]]; then
+        juju-log "Already started, respawning"
+        $CHARM_DIR/hooks/stop
+fi
+
+PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $ADDR $PORT)
+
+echo "PID=$PID" > $PID_FILE

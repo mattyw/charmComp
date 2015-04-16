@@ -10,4 +10,4 @@ juju-log "installing to $INSTALL_DIR"
 
 mkdir -p $BIN_DIR
 cp $CHARM_DIR/files/server.py $BIN_DIR/server
-chmod 755 $SERVER/server
+chmod 755 $SERVER
