@@ -1,6 +1,0 @@
-options:
-  http_port:
-    type: int
-    default: 3000
-    description: "The http port to bind to"
-
