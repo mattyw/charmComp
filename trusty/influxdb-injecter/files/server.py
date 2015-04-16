@@ -59,11 +59,12 @@ class _Handler(ss.BaseRequestHandler):
         series, _, number = data.encode('utf-8').rpartition(':')
 
         try:
-            float(number)
+            value = int(number)
         except ValueError:
             raise Exception('expected a number, got {!r}'.format(number))
 
-        # XXX Enforce bounds?
+        if value < 0 or value > 100:
+            raise Exception('out of bounds [0, 100]: {}'.format(value))
 
         if not series:
             series = None
