@@ -17,5 +17,6 @@ juju-log "Configuring graphite interface"
 sed -i "s|DB_PORT|8217|g" $CHARM_DIR/files/config.toml
 cp $CHARM_DIR/files/config.toml /opt/influxdb/current/
 cp $CHARM_DIR/files/config.toml /opt/influxdb/shared/
-
-
+open-port 8083
+open-port 8086
+open-port 8217
