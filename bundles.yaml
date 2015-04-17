@@ -1,5 +1,8 @@
 envExport: 
   services: 
+    "influxdb-injecter": 
+      charm: "cs:~cherylj/trusty/influxdb-injecter"
+      num_units: 0
     influxdb: 
       charm: "cs:~cherylj/trusty/influxdb"
       num_units: 1
@@ -9,4 +12,6 @@ envExport:
   relations: 
     - - "grafana:query"
       - "influxdb:query"
+    - - "influxdb:datastore"
+      - "influxdb-injecter:datastore"
   series: trusty
