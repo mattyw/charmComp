@@ -28,6 +28,6 @@ PID=$!
 juju-log "Starting carbon with pid: $PID"
 echo "PID=$PID" > $CARBON_PID_FILE
 
-PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $ADDR $PORT &)
-juju-log "Starting injector with pid: $PID"
-echo "PID=$PID" > $INJECTOR_PID_FILE
+#PID=$(sudo $SERVER --ns $NAMESPACE --host $ADDR --port $PORT $ADDR $PORT &)
+#juju-log "Starting injector with pid: $PID"
+#echo "PID=$PID" > $INJECTOR_PID_FILE
