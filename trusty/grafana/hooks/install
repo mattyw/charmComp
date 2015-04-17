@@ -7,3 +7,4 @@ tar -xvf $CHARM_DIR/files/grafana-1.9.1.tar.gz -C /opt
 sed -e "s|@CHARM_DIR@|$CHARM_DIR|g" $CHARM_DIR/files/nginx_notready | sudo tee /etc/nginx/sites-available/default > /dev/null
 
 sudo service nginx restart
+open-port 80
