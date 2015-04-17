@@ -22,7 +22,8 @@ Expose the grafana charm:
     juju expose grafana
 
 You can then access the grafana interface at the public interface shown
-from juju status.
+from juju status. The following video shows how to generate the graph of
+the data: https://youtu.be/7HdwuOWiOEo
 
 # Feeding data into influxDB
 

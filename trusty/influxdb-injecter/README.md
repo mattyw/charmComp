@@ -21,3 +21,6 @@ After the relation is added, information is being added to the grafana
 database.  The series name to query to graph the results is 
 series-<public hostname for influxdb-injecter>
 
+The following video shows how to generate the graph of the data:
+https://youtu.be/7HdwuOWiOEo
+
